@@ -1,22 +1,21 @@
 (function () {
     var WebSocket = 'WebSocket' in window ? window.WebSocket : window.MozWebSocket;
+    var observable = new function() {
+        riot.observable(this);
+        this.on('send', function(data) {
+            ws.send(JSON.stringify(data));
+        });
+    };
 
     if (WebSocket !== undefined) {
-        var ws = new WebSocket('ws://localhost:10005/room');
+        var ws = new WebSocket('ws://' + location.host + '/room');
         ws.onmessage = function(evt) {
-            console.log(evt);
-        }
+            var data = JSON.parse(evt.data);
 
-        document.querySelector('#login > input').addEventListener('change', function(e) {
-            ws.send(e.target.value);
-        });
-        document.querySelectorAll('#board td > div').forEach(function(elm, i) {
-            elm.addEventListener('click', function() {
-                if (!(elm.className in ['black', 'white'])) {
-                    elm.className = 'black';
-                    ws.send(i);
-                }
-            });
-        });
+            console.log(data);
+            observable.trigger('receive', data);
+        };
+
+        riot.mount('*', {websocket: observable});
     }
 })();
