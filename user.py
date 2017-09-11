@@ -19,22 +19,26 @@ class User:
         if 'name' in data:
             if search_by_name(data['name']) == None:
                 self.name = data['name']
-        elif 'view' in data:
+        if 'view' in data:
             self.status = 1
             search_by_name(data['view']).group.append(self)
-        elif 'request' in data:
+        if 'request' in data:
             self.status = random.randint(2, 3)
             self.opponent = search_by_name(data['request'])
             self.group = self.opponent.group
             self.history = self.opponent.history
+            self.agehama = self.opponent.agehama
             self.group.append(self)
             self.group.append(self.opponent)
             self.opponent.next(self.status)
             self.opponent.opponent = self
-        elif 'index' in data:
+        if 'index' in data:
             self.next(self.status)
             self.opponent.next(self.status)
             self.history.append(data['index'])
+        if 'agehama' in data and len(data['agehama']) > 0:
+            index = len(self.history) - 1
+            self.agehama[index] = data['agehama']
 
     def next(self, status):
         self.status = (status - 1) % 2 + 2
@@ -44,6 +48,7 @@ class User:
         self.opponent = None
         self.group = []
         self.history = []
+        self.agehama = {}
 
     def dump(self):
         return {

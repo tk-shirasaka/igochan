@@ -32,9 +32,10 @@ def room(ws):
                 elif 'request' in message and message['request'] == user.name:
                     senddata = {'message': u'%sさんから対戦リクエストが来ました' % current.name, 'request': current.name}
                 elif 'view' in message and user == current:
-                    senddata = {'history': search_by_name(message['view']).history}
+                    parent = search_by_name(message['view'])
+                    senddata = {'history': parent.history, 'agehama': parent.agehama}
                 elif 'index' in message:
-                    senddata = {'history': current.history}
+                    senddata = {'history': current.history, 'agehama': current.agehama}
                     if user.status == 2: senddata.update({'message': 'あなたの番です'})
 
                 senddata.update({'you': user.dump(), 'users': [other.dump() for other in users if other != user]})
