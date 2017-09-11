@@ -8,7 +8,7 @@
     };
 
     if (WebSocket !== undefined) {
-        var ws = new WebSocket('ws://' + location.host + '/room');
+        var ws = new WebSocket('wss://' + location.host + '/room');
         ws.onmessage = function(evt) {
             var data = JSON.parse(evt.data);
 
