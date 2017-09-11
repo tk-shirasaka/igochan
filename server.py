@@ -16,13 +16,14 @@ def room(ws):
     users.add(User(ws))
 
     while True:
-        message = json.loads(ws.receive())
+        message = ws.receive()
         current = search_by_websocket(ws)
-        current.set(message)
 
         if message is None:
             break;
         else:
+            message = json.loads(message)
+            current.set(message)
             for user in current.group if 'index' in message else users:
                 senddata = {}
                 if 'name' in message:

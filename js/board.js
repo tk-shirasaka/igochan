@@ -30,35 +30,72 @@
 
     <table if={you !== undefined && you.status > 0} border='1' cellspacing='0'>
         <tbody>
-            <tr each={i in [...Array(18).keys()]}>
-                <td each={j in [...Array(18).keys()]}>
-                    <div class={parent.parent.getclass(i * 18 + j)} onclick={parent.parent.onclick}></div>
+            <tr each={line in map}>
+                <td each={col in line}>
+                    <div class={col} onclick={parent.parent.onclick}></div>
                 </td>
             </tr>
         </tbody>
     </table>
 
     var self = this;
+    this.map = [...Array(18).keys()].map(function(i) { return [...Array(18).keys()].map(function(j) { return i * 18 + j})});
 
     this.opts.websocket.on('receive', function(data) {
-        var history = self.history;
         self.you = data.you;
-        if ('history' in data) self.history = data.history;
-        if (history === undefined || 'history' in data) self.update();
-    });
-    this.getclass = function(index) {
-        switch (self.history === undefined ? -1 : self.history.indexOf(String(index)) % 2) {
-            case -1:
-                return index;
-            case 0:
-                return 'black';
-            case 1:
-                return 'white';
+        if ('history' in data) {
+            self.setmap(data.history);
+            self.color = data.history.length % 2 ? 'white' : 'black';
+            self.opponent = data.history.length % 2 ? 'black' : 'white';
         }
+        self.update();
+    });
+    this.setmap = function(history) {
+        history.forEach(function(cell, index) {
+            self.map[parseInt(cell / 18)][cell % 18] = index % 2 ? 'white' : 'black';
+        });
     };
     this.onclick = function(e) {
         if (self.you.status == 2 && ['black', 'white'].indexOf(e.target.className) < 0) {
+            var cell = Number(e.target.className);
+            var checked = [];
+            var agehama = [];
+
+            self.map[parseInt(cell / 18)][cell % 18] = self.color;
+            agehama = agehama.concat(self.check(cell - 18, self.opponent, checked));
+            agehama = agehama.concat(self.check(cell - 1, self.opponent, checked));
+            agehama = agehama.concat(self.check(cell + 1, self.opponent, checked));
+            agehama = agehama.concat(self.check(cell + 18, self.opponent, checked));
+            console.log(agehama);
             opts.websocket.trigger('send', {index: e.target.className});
         }
+    };
+    this.check = function(cell, color, checked) {
+        var x = parseInt(cell / 18);
+        var y = cell % 18;
+        var opponent = color === 'black' ? 'white' : 'black';
+        var top = x > 0 ? self.map[x - 1][y] : opponent;
+        var left = x > 0 ? self.map[x][y - 1] : opponent;
+        var right = x < 17 ? self.map[x][y + 1] : opponent;
+        var bottom = x < 17 ? self.map[x + 1][y] : opponent;
+        var agehama = {top: [], left: [], right: [], bottom: []};
+
+        if (checked.indexOf(cell) < 0) {
+            checked.push(cell);
+        } else {
+            return [-1];
+        }
+        if (self.map[x][y] !== color) return [];
+        if (['black', 'white'].indexOf(top) < 0) return [];
+        if (['black', 'white'].indexOf(left) < 0) return [];
+        if (['black', 'white'].indexOf(right) < 0) return [];
+        if (['black', 'white'].indexOf(bottom) < 0) return [];
+        if (top === color && (agehama.top = self.check(cell - 18, color, checked)).length === 0) return [];
+        if (left === color && (agehama.left = self.check(cell - 1, color, checked)).length === 0) return [];
+        if (right === color && (agehama.right = self.check(cell + 1, color, checked)).length === 0) return [];
+        if (bottom === color && (agehama.bottom = self.check(cell + 18, color, checked)).length === 0) return [];
+        console.log(agehama);
+
+        return [cell, ...agehama.top, ...agehama.left, ...agehama.right, ...agehama.bottom].filter(function(cell) { return cell >= 0; });
     };
 </board>
