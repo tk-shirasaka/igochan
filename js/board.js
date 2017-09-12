@@ -1,15 +1,20 @@
 <board>
     <style>
+        :scope {
+            margin: calc(5vmin) auto;
+            display: block;
+            width: calc(80vmin);
+            height: calc(80vmin);
+        }
         table {
-            margin: 8px auto 0;
-            width: calc(100vmin - 80px);
-            height: calc(100vmin - 80px);
+            width: 100%;
+            height: 100%;
             background: moccasin;
         }
         td {
             position: relative;
         }
-        div {
+        td > div {
             position: absolute;
             width: calc(100% - 2px);
             height: calc(100% - 2px);
@@ -37,6 +42,7 @@
             </tr>
         </tbody>
     </table>
+    <input class='mdl-slider mdl-js-slider' type='range' min='0' max={(history == undefined ? [] : history).length} value={(history == undefined ? [] : history).length} onchange={historyback}>
 
     var self = this;
     this.map = [...Array(18).keys()].map(function(i) { return [...Array(18).keys()].map(function(j) { return i * 18 + j})});
@@ -53,7 +59,8 @@
         self.map = [...Array(18).keys()].map(function(i) { return [...Array(18).keys()].map(function(j) { return i * 18 + j})});
         self.color = self.history.length % 2 ? 'white' : 'black';
         self.opponent = self.history.length % 2 ? 'black' : 'white';
-        self.history.forEach(function(cell, index) {
+        self.history.some(function(cell, index) {
+            if (self.limit != undefined && self.limit <= index) return true;
             self.map[parseInt(cell / 18)][cell % 18] = index % 2 ? 'white' : 'black';
             if (index in self.agehama) {
                 self.agehama[index].forEach(function(cell) {
@@ -83,6 +90,8 @@
                     self.agehama = {};
                 }
                 if (agehama.length) self.agehama[self.history.length - 1] = agehama;
+                if (self.limit !== undefined) self.history.splice(self.limit);
+                self.limit = undefined;
                 self.history.push(e.target.className);
                 self.setmap();
                 self.update();
@@ -117,5 +126,9 @@
         if (bottom === color && (agehama.bottom = self.check(cell + 18, color, checked)).length === 0) return [];
 
         return [cell, ...agehama.top, ...agehama.left, ...agehama.right, ...agehama.bottom].filter(function(cell) { return cell >= 0; });
+    };
+    this.historyback = function(e) {
+        self.limit = parseInt(e.target.value);
+        self.setmap();
     };
 </board>
