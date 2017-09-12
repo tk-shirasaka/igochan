@@ -28,7 +28,7 @@
         }
     </style>
 
-    <table if={you !== undefined && you.status > 0} border='1' cellspacing='0'>
+    <table border='1' cellspacing='0'>
         <tbody>
             <tr each={line in map}>
                 <td each={col in line}>
@@ -43,25 +43,27 @@
 
     this.opts.websocket.on('receive', function(data) {
         self.you = data.you;
-        if ('history' in data && 'agehama' in data) {
-            self.setmap(data.history, data.agehama);
-            self.color = data.history.length % 2 ? 'white' : 'black';
-            self.opponent = data.history.length % 2 ? 'black' : 'white';
-        }
+        self.history = data.history;
+        self.agehama = data.agehama;
+        self.setmap(data.agehama);
         self.update();
     });
-    this.setmap = function(history, agehama) {
-        history.forEach(function(cell, index) {
+    this.setmap = function() {
+        if (self.history === undefined) return;
+        self.map = [...Array(18).keys()].map(function(i) { return [...Array(18).keys()].map(function(j) { return i * 18 + j})});
+        self.color = self.history.length % 2 ? 'white' : 'black';
+        self.opponent = self.history.length % 2 ? 'black' : 'white';
+        self.history.forEach(function(cell, index) {
             self.map[parseInt(cell / 18)][cell % 18] = index % 2 ? 'white' : 'black';
-            if (index in agehama) {
-                agehama[index].forEach(function(cell) {
+            if (index in self.agehama) {
+                self.agehama[index].forEach(function(cell) {
                     self.map[parseInt(cell / 18)][cell % 18] = cell;
                 });
             }
         });
     };
     this.onclick = function(e) {
-        if (self.you.status == 2 && ['black', 'white'].indexOf(e.target.className) < 0) {
+        if ((self.you.status == 0 || self.you.status == 2) && ['black', 'white'].indexOf(e.target.className) < 0) {
             var cell = Number(e.target.className);
             var x = parseInt(cell / 18);
             var y = cell % 18;
@@ -75,7 +77,16 @@
             agehama = agehama.concat(self.check(cell + 18, self.opponent, checked));
             if (agehama.length === 0 && self.check(cell, self.color, []).length > 0) {
                 self.map[x][y] = cell;
-            } else {
+            } else if (self.you.status == 0) {
+                if (self.history === undefined) {
+                    self.history = [];
+                    self.agehama = {};
+                }
+                if (agehama.length) self.agehama[self.history.length - 1] = agehama;
+                self.history.push(e.target.className);
+                self.setmap();
+                self.update();
+            } else if (self.you.status == 2) {
                 opts.websocket.trigger('send', {index: e.target.className, agehama: agehama});
             }
         }

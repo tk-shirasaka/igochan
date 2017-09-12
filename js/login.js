@@ -1,8 +1,13 @@
 <login>
-    <div if={you === undefined || !you.name} class='mdl-textfield mdl-js-textfield'>
-        <input class='mdl-textfield__input' type='text' onchange={onchange}>
-        <label class='mdl-textfield__label'>ユーザー名</label>
+    <div if={you == undefined || !you.name} class='mdl-textfield mdl-js-textfield mdl-textfield--expandable'>
+        <label class='mdl-button mdl-js-button mdl-button--icon' for='name'>
+            <i class='material-icons'>account_circle</i>
+        </label>
+        <div class='mdl-textfield__expandable-holder'>
+            <input id='name' class='mdl-textfield__input' type='text' onchange={onchange}>
+        </div>
     </div>
+    <div if={you != undefined && you.name} class='mdl-typography--title'>{you.name}</div>
 
     var self = this;
 

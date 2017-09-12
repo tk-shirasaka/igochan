@@ -6,7 +6,7 @@
                 <span class='mdl-list__item-sub-title'>{parent.statusname(status)}</span>
             </span>
             <span class='mdl-list__item-secondary-action'>
-                <button if={you.status <= 1 && status == 0} onclick={parent.start} class='mdl-button mdl-js-button mdl-button--raised  mdl-js-ripple-effect mdl-button--accent'>対戦</button>
+                <button if={you.status <= 1 && you.name && status == 0} onclick={parent.start} class='mdl-button mdl-js-button mdl-button--raised  mdl-js-ripple-effect mdl-button--accent'>対戦</button>
                 <button if={you.status == 0 && status >= 2} onclick={parent.view} class='mdl-button mdl-js-button mdl-button--raised  mdl-js-ripple-effect mdl-button--colored'>観戦</button>
             </span>
         </li>

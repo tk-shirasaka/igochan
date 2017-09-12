@@ -9,6 +9,12 @@
 
     if (WebSocket !== undefined) {
         var ws = new WebSocket('wss://' + location.host + '/room');
+        ws.onopen = function(evt) {
+            ws.send(JSON.stringify({init: true}))
+        };
+        ws.onclose = function(evt) {
+            observable.trigger('receive', {message: '接続が切れました'});
+        };
         ws.onmessage = function(evt) {
             var data = JSON.parse(evt.data);
 
