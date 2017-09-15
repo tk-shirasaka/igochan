@@ -26,14 +26,12 @@ def room(ws):
             current.set(message)
             for user in current.group if 'index' in message else users:
                 senddata = {}
-                if 'init' in message:
-                    if user == current:
-                        senddata = {'message': '接続しました'}
-                    else:
-                        continue
-                elif 'name' in message:
-                    if current.name and user != current: senddata = {'message': u'%sさんが入室しました' % current.name}
-                    if current.name == None and user == current: senddata = {'message': u'別の名前を入力してください'}
+                if 'init' in message and user == current:
+                    senddata = {'message': '接続しました'}
+                if 'reconnect' in message and user == current:
+                    senddata = {'message': '再接続しました'}
+                elif 'name' in message and current.name == None and user == current:
+                    senddata = {'message': u'別の名前を入力してください'}
                 elif 'request' in message and message['request'] == user.name:
                     senddata = {'message': u'%sさんから対戦リクエストが来ました' % current.name, 'request': current.name}
                 elif 'view' in message and user == current:
@@ -43,9 +41,13 @@ def room(ws):
                     senddata = {'history': current.history, 'agehama': current.agehama}
                     if user.status == 2: senddata.update({'message': 'あなたの番です'})
 
-                senddata.update({'you': user.dump(), 'users': [other.dump() for other in users if other != user and other.name]})
+                senddata.update({'you': user.dump(), 'users': [other.dump() for other in users if other != user and other.name and other.ws]})
                 user.ws.send(json.dumps(senddata))
-    users.remove(current)
+
+    if current.name == None:
+        users.remove(current)
+    else:
+        current.ws = None
 
 @route('/js/<filepath:path>')
 def js(filepath):

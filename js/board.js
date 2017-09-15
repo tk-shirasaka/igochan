@@ -48,6 +48,7 @@
             left: calc(-50% + 1px);
         }
         .black, .white {
+            z-index: 1;
             border: solid 1px;
             border-radius: 50%;
         }

@@ -8,20 +8,44 @@
     };
 
     if (WebSocket !== undefined) {
-        var ws = new WebSocket('wss://' + location.host + '/room');
-        ws.onopen = function(evt) {
-            ws.send(JSON.stringify({init: true}))
-        };
-        ws.onclose = function(evt) {
-            observable.trigger('receive', {message: '接続が切れました'});
-        };
-        ws.onmessage = function(evt) {
-            var data = JSON.parse(evt.data);
+        var ws = null;
+        var retry = 0;
+        function connect() {
+            if (ws) return;
 
-            console.log(data);
-            observable.trigger('receive', data);
-        };
+            ws = new WebSocket('wss://' + location.host + '/room');
+            ws.onopen = function(evt) {
+                retry = 0;
+                ws.send(JSON.stringify({init: true}))
+            };
+            ws.onclose = function(evt) {
+                ws = null;
+                if (!retry) observable.trigger('receive', {message: '接続が切れました'});
+                setTimeout(function() {
+                    retry++;
+                    connect();
+                }, retry * 1000);
+            };
+            ws.onerror = function(evt) {
+                ws = null;
+                setTimeout(function() {
+                    retry++;
+                    connect();
+                }, retry * 1000);
+            };
+            ws.onmessage = function(evt) {
+                var data = JSON.parse(evt.data);
 
+                console.log(data);
+                observable.trigger('receive', data);
+            };
+        }
+
+        window.addEventListener('unload', function(e) {
+            ws.send(JSON.stringify({close: true}));
+        });
+
+        connect();
         riot.mount('*', {websocket: observable});
     }
 })();

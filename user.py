@@ -39,6 +39,15 @@ class User:
         if 'agehama' in data and len(data['agehama']) > 0:
             index = len(self.history) - 1
             self.agehama[index] = data['agehama']
+        if 'reconnect' in data:
+            user = search_by_name(data['reconnect'])
+            if user:
+                user.ws = self.ws
+                users.remove(self)
+            else:
+                self.name = data['reconnect']
+        if 'close' in data:
+            self.name = None
 
     def next(self, status):
         self.status = (status - 1) % 2 + 2
