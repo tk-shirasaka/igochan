@@ -11,8 +11,9 @@
 
     var self = this;
 
-    this.opts.websocket.on('receive', function(data) {
-        self.you = data.you;
+    this.opts.websocket.on('receive:user', function(you) {
+        if (self.you !== undefined && self.you.name && !you.name) opts.websocket.trigger('send', {reconnect: self.you.name});
+        self.you = you;
         self.update();
     });
     this.onchange = function(e) {

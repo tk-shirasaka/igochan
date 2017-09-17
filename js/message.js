@@ -6,13 +6,11 @@
 
     var self = this;
 
-    this.opts.websocket.on('receive', function(data) {
-        if ('message' in data) {
-            self.refs.message.MaterialSnackbar.showSnackbar({
-                message: data.message,
-            });
-            self.update();
-        }
+    this.opts.websocket.on('receive:message', function(message) {
+        self.refs.message.MaterialSnackbar.showSnackbar({
+            message: message,
+        });
+        self.update();
     });
     this.on('mount', function() {
         componentHandler.upgradeDom();

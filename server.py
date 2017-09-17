@@ -28,8 +28,6 @@ def room(ws):
                 senddata = {}
                 if 'init' in message and user == current:
                     senddata = {'message': '接続しました'}
-                if 'reconnect' in message and user == current:
-                    senddata = {'message': '再接続しました'}
                 elif 'name' in message and current.name == None and user == current:
                     senddata = {'message': u'別の名前を入力してください'}
                 elif 'request' in message and message['request'] == user.name:
@@ -42,7 +40,7 @@ def room(ws):
                     if user.status == 2: senddata.update({'message': 'あなたの番です'})
 
                 senddata.update({'you': user.dump(), 'users': [other.dump() for other in users if other != user and other.name and other.ws]})
-                user.ws.send(json.dumps(senddata))
+                if user.ws: user.ws.send(json.dumps(senddata))
 
     if current.name == None:
         users.remove(current)

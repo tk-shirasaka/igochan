@@ -53,10 +53,13 @@
             border-radius: 50%;
         }
         .black {
-            background: #000;
+            background: radial-gradient(#555, #000);
         }
         .white {
-            background: #fff;
+            background: radial-gradient(#ddd, #fff);
+        }
+        .limitter {
+            height: 60px !important;
         }
     </style>
 
@@ -65,17 +68,19 @@
             <div class={col} onclick={parent.parent.onclick}></div>
         </div>
     </div>
-    <input class='mdl-slider mdl-js-slider' type='range' min='0' max={(history == undefined ? [] : history).length} value={(history == undefined ? [] : history).length} onchange={historyback}>
+    <input class='limitter mdl-slider mdl-js-slider' type='range' min='0' max={(history == undefined ? [] : history).length} value={(history == undefined ? [] : history).length} onchange={historyback}>
 
     var self = this;
     this.size = 19;
     this.map = [...Array(self.size).keys()].map(function(i) { return [...Array(self.size).keys()].map(function(j) { return i * self.size + j})});
 
-    this.opts.websocket.on('receive', function(data) {
-        self.you = data.you;
-        self.history = data.history;
-        self.agehama = data.agehama;
-        self.setmap(data.agehama);
+    this.opts.websocket.on('receive:user', function(you) {
+        self.status = you.status;
+    });
+    this.opts.websocket.on('receive:game', function(history, agehama) {
+        self.history = history;
+        self.agehama = agehama;
+        self.setmap();
         self.update();
     });
     this.setmap = function() {
@@ -94,7 +99,7 @@
         });
     };
     this.onclick = function(e) {
-        if ((self.you.status == 0 || self.you.status == 2) && ['black', 'white'].indexOf(e.target.className) < 0) {
+        if ((self.status == 0 || self.status == 2) && ['black', 'white'].indexOf(e.target.className) < 0) {
             var cell = Number(e.target.className);
             var x = parseInt(cell / self.size);
             var y = cell % self.size;
@@ -108,7 +113,7 @@
             agehama = agehama.concat(self.check(cell + self.size, self.opponent, checked));
             if (agehama.length === 0 && self.check(cell, self.color, []).length > 0) {
                 self.map[x][y] = cell;
-            } else if (self.you.status == 0) {
+            } else if (self.status == 0) {
                 if (self.history === undefined) {
                     self.history = [];
                     self.agehama = {};
@@ -119,7 +124,7 @@
                 self.history.push(e.target.className);
                 self.setmap();
                 self.update();
-            } else if (self.you.status == 2) {
+            } else if (self.status == 2) {
                 opts.websocket.trigger('send', {index: e.target.className, agehama: agehama});
             }
         }

@@ -25,9 +25,9 @@
         if (status == 1) return '観戦中';
         if (status >= 2) return '対戦中';
     };
-    this.opts.websocket.on('receive', function(data) {
-        self.you = data.you;
-        self.users = data.users;
+    this.opts.websocket.on('receive:user', function(you, users) {
+        self.you = you;
+        self.users = users;
         self.update();
     });
 </users>

@@ -16,11 +16,11 @@
             ws = new WebSocket('wss://' + location.host + '/room');
             ws.onopen = function(evt) {
                 retry = 0;
-                ws.send(JSON.stringify({init: true}))
+                ws.send(JSON.stringify({init: true}));
             };
             ws.onclose = function(evt) {
                 ws = null;
-                if (!retry) observable.trigger('receive', {message: '接続が切れました'});
+                if (!retry) observable.trigger('receive:message', '接続が切れました');
                 setTimeout(function() {
                     retry++;
                     connect();
@@ -36,8 +36,10 @@
             ws.onmessage = function(evt) {
                 var data = JSON.parse(evt.data);
 
+                if ('you' in data) observable.trigger('receive:user', data.you, data.users);
+                if ('history' in data) observable.trigger('receive:game', data.history, data.agehama);
+                if ('message' in data) observable.trigger('receive:message', data.message);
                 console.log(data);
-                observable.trigger('receive', data);
             };
         }
 
