@@ -27,7 +27,7 @@ def room(ws):
             for user in current.group if 'index' in message else users:
                 senddata = {}
                 if 'init' in message and user == current:
-                    senddata = {'message': '接続しました'}
+                    senddata = {'message': '接続しました', 'history': user.history, 'agehama': user.agehama}
                 elif 'name' in message and current.name == None and user == current:
                     senddata = {'message': u'別の名前を入力してください'}
                 elif 'request' in message and message['request'] == user.name:

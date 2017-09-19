@@ -36,9 +36,7 @@ class User:
             self.next(self.status)
             self.opponent.next(self.status)
             self.history.append(data['index'])
-        if 'agehama' in data and len(data['agehama']) > 0:
-            index = len(self.history) - 1
-            self.agehama[index] = data['agehama']
+            self.agehama.append(data['agehama'])
         if 'reconnect' in data:
             user = search_by_name(data['reconnect'])
             if user:
@@ -57,7 +55,7 @@ class User:
         self.opponent = None
         self.group = []
         self.history = []
-        self.agehama = {}
+        self.agehama = []
 
     def dump(self):
         return {

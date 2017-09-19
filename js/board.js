@@ -34,7 +34,7 @@
             background: black;
             border-radius: 50%;
         }
-        .cell > div {
+        stone {
             position: absolute;
             width: 90%;
             height: 90%;
@@ -47,96 +47,67 @@
             top: calc(-50% + 1px);
             left: calc(-50% + 1px);
         }
-        .black, .white {
-            z-index: 1;
-            border: solid 1px;
-            border-radius: 50%;
-        }
-        .black {
-            background: radial-gradient(#555, #000);
-        }
-        .white {
-            background: radial-gradient(#ddd, #fff);
-        }
         .limitter {
             height: 60px !important;
         }
     </style>
 
-    <div class='line' each={line, i in map}>
-        <div each={col, j in line} class={cell: true, invisible: (i == (size - 1) || j == (size - 1)), star: ([3, 9, 15].indexOf(i) >= 0 && [3, 9, 15].indexOf(j) >= 0)}>
-            <div class={col} onclick={parent.parent.onclick}></div>
+    <div class='line' each={i in [...Array(size).keys()]}>
+        <div each={j in [...Array(size).keys()]} class={cell: true, invisible: (i == (size - 1) || j == (size - 1)), star: ([3, 9, 15].indexOf(i) >= 0 && [3, 9, 15].indexOf(j) >= 0)}>
+            <stone index={i * size + j} onclick={parent.parent.onclick}></stone>
         </div>
     </div>
-    <input class='limitter mdl-slider mdl-js-slider' type='range' min='0' max={(history == undefined ? [] : history).length} value={(history == undefined ? [] : history).length} onchange={historyback}>
+    <input class='limitter mdl-slider mdl-js-slider' type='range' min='0' max={history.length} value={history.length} onchange={historyback}>
 
     var self = this;
     this.size = 19;
-    this.map = [...Array(self.size).keys()].map(function(i) { return [...Array(self.size).keys()].map(function(j) { return i * self.size + j})});
 
-    this.opts.websocket.on('receive:user', function(you) {
+    this.websocket.on('receive:user', function(you) {
         self.status = you.status;
     });
-    this.opts.websocket.on('receive:game', function(history, agehama) {
+    this.websocket.on('receive:game', function(history, agehama) {
         self.history = history;
         self.agehama = agehama;
-        self.setmap();
         self.update();
     });
-    this.setmap = function() {
-        if (self.history === undefined) return;
-        self.map = [...Array(self.size).keys()].map(function(i) { return [...Array(self.size).keys()].map(function(j) { return i * self.size + j})});
-        self.color = self.history.length % 2 ? 'white' : 'black';
-        self.opponent = self.history.length % 2 ? 'black' : 'white';
-        self.history.some(function(cell, index) {
-            if (self.limit != undefined && self.limit <= index) return true;
-            self.map[parseInt(cell / self.size)][cell % self.size] = index % 2 ? 'white' : 'black';
-            if (index in self.agehama) {
-                self.agehama[index].forEach(function(cell) {
-                    self.map[parseInt(cell / self.size)][cell % self.size] = cell;
-                });
-            }
-        });
-    };
     this.onclick = function(e) {
         if ((self.status == 0 || self.status == 2) && ['black', 'white'].indexOf(e.target.className) < 0) {
-            var cell = Number(e.target.className);
-            var x = parseInt(cell / self.size);
-            var y = cell % self.size;
+            var cell = Number(e.target._tag.opts.index);
             var checked = [];
             var agehama = [];
+            var color = self.history.length % 2 ? 'white' : 'black';
+            var opponent = self.history.length % 2 ? 'black' : 'white';
 
-            self.map[x][y] = self.color;
-            agehama = agehama.concat(self.check(cell - self.size, self.opponent, checked));
-            agehama = agehama.concat(self.check(cell - 1, self.opponent, checked));
-            agehama = agehama.concat(self.check(cell + 1, self.opponent, checked));
-            agehama = agehama.concat(self.check(cell + self.size, self.opponent, checked));
-            if (agehama.length === 0 && self.check(cell, self.color, []).length > 0) {
-                self.map[x][y] = cell;
+            self.tags.stone[cell].root.className = color;
+            agehama = agehama.concat(self.check(cell - self.size, opponent, checked));
+            agehama = agehama.concat(self.check(cell - 1, opponent, checked));
+            agehama = agehama.concat(self.check(cell + 1, opponent, checked));
+            agehama = agehama.concat(self.check(cell + self.size, opponent, checked));
+            if (agehama.length === 0 && self.check(cell, color, []).length > 0) {
+                self.tags.stone[cell].root.className = '';
             } else if (self.status == 0) {
-                if (self.history === undefined) {
-                    self.history = [];
-                    self.agehama = {};
+                self.agehama.push(agehama);
+                self.history.push(cell);
+                if (self.limit !== undefined) {
+                    self.history.splice(self.limit);
+                    self.agehama.splice(self.limit);
+                    self.limit = undefined;
                 }
-                if (agehama.length) self.agehama[self.history.length - 1] = agehama;
-                if (self.limit !== undefined) self.history.splice(self.limit);
-                self.limit = undefined;
-                self.history.push(e.target.className);
-                self.setmap();
-                self.update();
+                self.websocket.trigger('receive:game', self.history, self.agehama);
+                self.websocket.trigger('historyback', self.limit);
             } else if (self.status == 2) {
-                opts.websocket.trigger('send', {index: e.target.className, agehama: agehama});
+                self.websocket.trigger('send', {index: cell, agehama: agehama});
             }
         }
     };
     this.check = function(cell, color, checked) {
-        var x = parseInt(cell / self.size);
-        var y = cell % self.size;
+        if (cell < 0 || cell >= self.size * self.size) return [];
+
         var opponent = color === 'black' ? 'white' : 'black';
-        var top = x > 0 && y >= 0 && y <= (self.size - 1) ? self.map[x - 1][y] : opponent;
-        var left = y > 0 && x >= 0 && x <= (self.size - 1) ? self.map[x][y - 1] : opponent;
-        var right = y < (self.size - 1) && x >= 0 && x <= (self.size - 1) ? self.map[x][y + 1] : opponent;
-        var bottom = x < (self.size - 1) && y >= 0 && y <= (self.size - 1) ? self.map[x + 1][y] : opponent;
+        var top = cell >= self.size ? self.tags.stone[cell - self.size].root.className : opponent;
+        var left = cell % self.size > 0 ? self.tags.stone[cell - 1].root.className : opponent;
+        var right = cell % self.size < self.size - 1 ? self.tags.stone[cell + 1].root.className : opponent;
+        var bottom = cell < self.size * (self.size - 1) ? self.tags.stone[cell + self.size].root.className : opponent;
         var agehama = {top: [], left: [], right: [], bottom: []};
 
         if (checked.indexOf(cell) < 0) {
@@ -144,7 +115,7 @@
         } else {
             return [-1];
         }
-        if (x < 0 || x > (self.size - 1) || y < 0 || y > (self.size - 1) || self.map[x][y] !== color) return [];
+        if (self.tags.stone[cell].root.className !== color) return [];
         if (['black', 'white'].indexOf(top) < 0) return [];
         if (['black', 'white'].indexOf(left) < 0) return [];
         if (['black', 'white'].indexOf(right) < 0) return [];
@@ -158,6 +129,7 @@
     };
     this.historyback = function(e) {
         self.limit = parseInt(e.target.value);
-        self.setmap();
+        if (self.limit === self.history.length) self.limit = undefined;
+        self.websocket.trigger('historyback', self.limit);
     };
 </board>

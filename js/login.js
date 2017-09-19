@@ -11,12 +11,12 @@
 
     var self = this;
 
-    this.opts.websocket.on('receive:user', function(you) {
+    this.websocket.on('receive:user', function(you) {
         if (self.you !== undefined && self.you.name && !you.name) opts.websocket.trigger('send', {reconnect: self.you.name});
         self.you = you;
         self.update();
     });
     this.onchange = function(e) {
-        opts.websocket.trigger('send', {name: e.target.value});
+        self.websocket.trigger('send', {name: e.target.value});
     };
 </login>

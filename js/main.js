@@ -48,6 +48,7 @@
         });
 
         connect();
-        riot.mount('*', {websocket: observable});
+        riot.mixin({websocket: observable})
+        riot.mount('*');
     }
 })();

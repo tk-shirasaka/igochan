@@ -15,17 +15,17 @@
     var self = this;
 
     this.start = function(e) {
-        opts.websocket.trigger('send', {request: e.item.name});
+        self.websocket.trigger('send', {request: e.item.name});
     };
     this.view = function(e) {
-        opts.websocket.trigger('send', {view: e.item.name});
+        self.websocket.trigger('send', {view: e.item.name});
     };
     this.statusname = function(status) {
         if (status == 0) return '待機中';
         if (status == 1) return '観戦中';
         if (status >= 2) return '対戦中';
     };
-    this.opts.websocket.on('receive:user', function(you, users) {
+    this.websocket.on('receive:user', function(you, users) {
         self.you = you;
         self.users = users;
         self.update();

@@ -6,7 +6,7 @@
 
     var self = this;
 
-    this.opts.websocket.on('receive:message', function(message) {
+    this.websocket.on('receive:message', function(message) {
         self.refs.message.MaterialSnackbar.showSnackbar({
             message: message,
         });
