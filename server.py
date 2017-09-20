@@ -30,8 +30,11 @@ def room(ws):
                     senddata = {'message': '接続しました', 'history': user.history, 'agehama': user.agehama}
                 elif 'name' in message and current.name == None and user == current:
                     senddata = {'message': u'別の名前を入力してください'}
-                elif 'request' in message and message['request'] == user.name:
-                    senddata = {'message': u'%sさんから対戦リクエストが来ました' % current.name, 'request': current.name}
+                elif 'request' in message:
+                    if user == current:
+                        senddata = {'history': user.history, 'agehama': user.agehama}
+                    elif message['request'] == user.name:
+                        senddata = {'message': u'%sさんから対戦リクエストが来ました' % current.name, 'request': current.name, 'history': user.history, 'agehama': user.agehama}
                 elif 'view' in message and user == current:
                     parent = search_by_name(message['view'])
                     senddata = {'history': parent.history, 'agehama': parent.agehama}

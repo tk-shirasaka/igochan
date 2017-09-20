@@ -47,9 +47,6 @@
             top: calc(-50% + 1px);
             left: calc(-50% + 1px);
         }
-        .limitter {
-            height: 60px !important;
-        }
     </style>
 
     <div class='line' each={i in [...Array(size).keys()]}>
@@ -57,13 +54,16 @@
             <stone index={i * size + j} onclick={parent.parent.onclick}></stone>
         </div>
     </div>
-    <input class='limitter mdl-slider mdl-js-slider' type='range' min='0' max={history.length} value={history.length} onchange={historyback}>
+    <div if={[2, 3].indexOf(status) == -1}>
+        <input class='mdl-slider mdl-js-slider' type='range' min='0' max={history.length} value={history.length} oninput={historyback}>
+    </div>
 
     var self = this;
     this.size = 19;
 
     this.websocket.on('receive:user', function(you) {
         self.status = you.status;
+        if (self.status >= 2) self.websocket.trigger('historyback', undefined);
     });
     this.websocket.on('receive:game', function(history, agehama) {
         self.history = history;
@@ -86,13 +86,13 @@
             if (agehama.length === 0 && self.check(cell, color, []).length > 0) {
                 self.tags.stone[cell].root.className = '';
             } else if (self.status == 0) {
-                self.agehama.push(agehama);
-                self.history.push(cell);
                 if (self.limit !== undefined) {
                     self.history.splice(self.limit);
                     self.agehama.splice(self.limit);
                     self.limit = undefined;
                 }
+                self.agehama.push(agehama);
+                self.history.push(cell);
                 self.websocket.trigger('receive:game', self.history, self.agehama);
                 self.websocket.trigger('historyback', self.limit);
             } else if (self.status == 2) {
