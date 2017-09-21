@@ -54,21 +54,21 @@
             <stone index={i * size + j} onclick={parent.parent.onclick}></stone>
         </div>
     </div>
-    <div if={[2, 3].indexOf(status) == -1}>
-        <input class='mdl-slider mdl-js-slider' type='range' min='0' max={history.length} value={history.length} oninput={historyback}>
-    </div>
+    <slider></slider>
 
     var self = this;
     this.size = 19;
 
     this.websocket.on('receive:user', function(you) {
         self.status = you.status;
-        if (self.status >= 2) self.websocket.trigger('historyback', undefined);
     });
     this.websocket.on('receive:game', function(history, agehama) {
         self.history = history;
         self.agehama = agehama;
         self.update();
+    });
+    this.websocket.on('historyback', function(limit) {
+        self.limit = limit;
     });
     this.onclick = function(e) {
         if ((self.status == 0 || self.status == 2) && ['black', 'white'].indexOf(e.target.className) < 0) {
@@ -86,15 +86,13 @@
             if (agehama.length === 0 && self.check(cell, color, []).length > 0) {
                 self.tags.stone[cell].root.className = '';
             } else if (self.status == 0) {
-                if (self.limit !== undefined) {
+                if (self.history.length !== self.limit) {
                     self.history.splice(self.limit);
                     self.agehama.splice(self.limit);
-                    self.limit = undefined;
                 }
                 self.agehama.push(agehama);
                 self.history.push(cell);
                 self.websocket.trigger('receive:game', self.history, self.agehama);
-                self.websocket.trigger('historyback', self.limit);
             } else if (self.status == 2) {
                 self.websocket.trigger('send', {index: cell, agehama: agehama});
             }
@@ -126,10 +124,5 @@
         if (bottom === color && (agehama.bottom = self.check(cell + self.size, color, checked)).length === 0) return [];
 
         return [cell, ...agehama.top, ...agehama.left, ...agehama.right, ...agehama.bottom].filter(function(cell) { return cell >= 0; });
-    };
-    this.historyback = function(e) {
-        self.limit = parseInt(e.target.value);
-        if (self.limit === self.history.length) self.limit = undefined;
-        self.websocket.trigger('historyback', self.limit);
     };
 </board>

@@ -22,15 +22,9 @@
     this.websocket.on('receive:game', function(history, agehama) {
         self.history = history;
         self.agehama = agehama;
-        self.render();
     });
     this.websocket.on('historyback', function(limit) {
-        self.limit = limit;
-        self.render();
-    });
-    this.render = function() {
         var i = self.history.lastIndexOf(opts.index);
-        var limit = self.limit === undefined ? self.history.length : self.limit;
         self.root.className = '';
         for (; i >= 0 && i < limit; i++) {
             if (self.root.className === '') {
@@ -42,5 +36,5 @@
             }
         }
         self.update();
-    };
+    });
 </stone>
