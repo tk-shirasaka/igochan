@@ -2,13 +2,17 @@
     <style>
         :scope {
             padding: 1vmin;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         .line {
             display: flex;
             justify-content: center;
+            width: 90vmin;
         }
         .cell {
-            width: 5vmin;
+            flex-grow: 1;
             position: relative;
             margin: -1px;
             border: 1px solid black;
@@ -49,15 +53,27 @@
         }
     </style>
 
-    <div class='line' each={i in [...Array(size).keys()]}>
-        <div each={j in [...Array(size).keys()]} class={cell: true, invisible: (i == (size - 1) || j == (size - 1)), star: ([3, 9, 15].indexOf(i) >= 0 && [3, 9, 15].indexOf(j) >= 0)}>
-            <stone index={i * size + j} onclick={parent.parent.onclick}></stone>
+    <div if={size != undefined}>
+        <div class='line' each={i in [...Array(size.value).keys()]}>
+            <div each={j in [...Array(size.value).keys()]} class={cell: true, invisible: (i == (size.value - 1) || j == (size.value - 1)), star: (size.star.indexOf(i) >= 0 && size.star.indexOf(j) >= 0)}>
+                <stone index={i * size.value + j} onclick={parent.parent.onclick}></stone>
+            </div>
         </div>
+        <slider></slider>
     </div>
-    <slider></slider>
+    <div>
+        <label class='mdl-radio mdl-js-radio mdl-js-ripple-effect' each={size in list} onclick={select}>
+            <input class='mdl-radio__button' type='radio' name='size' value={size.value}>
+            <span class='mdl-radio__label'>{size.value}路盤</span>
+        </label>
+    </div>
 
     var self = this;
-    this.size = 19;
+    this.list = [
+        {value: 9,  star: [4]},
+        {value: 13, star: [3, 9]},
+        {value: 19, star: [3, 9, 15]},
+    ]
 
     this.websocket.on('receive:user', function(you) {
         self.status = you.status;
@@ -70,6 +86,10 @@
     this.websocket.on('historyback', function(limit) {
         self.limit = limit;
     });
+    this.select = function(e) {
+        self.size = e.item.size;
+        self.update();
+    };
     this.onclick = function(e) {
         if ((self.status == 0 || self.status == 2) && ['black', 'white'].indexOf(e.target.className) < 0) {
             var cell = Number(e.target._tag.opts.index);
@@ -79,10 +99,10 @@
             var opponent = self.history.length % 2 ? 'black' : 'white';
 
             self.tags.stone[cell].root.className = color;
-            agehama = agehama.concat(self.check(cell - self.size, opponent, checked));
+            agehama = agehama.concat(self.check(cell - self.size.value, opponent, checked));
             agehama = agehama.concat(self.check(cell - 1, opponent, checked));
             agehama = agehama.concat(self.check(cell + 1, opponent, checked));
-            agehama = agehama.concat(self.check(cell + self.size, opponent, checked));
+            agehama = agehama.concat(self.check(cell + self.size.value, opponent, checked));
             if (agehama.length === 0 && self.check(cell, color, []).length > 0) {
                 self.tags.stone[cell].root.className = '';
             } else if (self.status == 0) {
@@ -99,13 +119,13 @@
         }
     };
     this.check = function(cell, color, checked) {
-        if (cell < 0 || cell >= self.size * self.size) return [];
+        if (cell < 0 || cell >= self.size.value * self.size.value) return [];
 
         var opponent = color === 'black' ? 'white' : 'black';
-        var top = cell >= self.size ? self.tags.stone[cell - self.size].root.className : opponent;
-        var left = cell % self.size > 0 ? self.tags.stone[cell - 1].root.className : opponent;
-        var right = cell % self.size < self.size - 1 ? self.tags.stone[cell + 1].root.className : opponent;
-        var bottom = cell < self.size * (self.size - 1) ? self.tags.stone[cell + self.size].root.className : opponent;
+        var top = cell >= self.size.value ? self.tags.stone[cell - self.size.value].root.className : opponent;
+        var left = cell % self.size.value > 0 ? self.tags.stone[cell - 1].root.className : opponent;
+        var right = cell % self.size.value < self.size.value - 1 ? self.tags.stone[cell + 1].root.className : opponent;
+        var bottom = cell < self.size.value * (self.size.value - 1) ? self.tags.stone[cell + self.size.value].root.className : opponent;
         var agehama = {top: [], left: [], right: [], bottom: []};
 
         if (checked.indexOf(cell) < 0) {
@@ -118,10 +138,10 @@
         if (['black', 'white'].indexOf(left) < 0) return [];
         if (['black', 'white'].indexOf(right) < 0) return [];
         if (['black', 'white'].indexOf(bottom) < 0) return [];
-        if (top === color && (agehama.top = self.check(cell - self.size, color, checked)).length === 0) return [];
+        if (top === color && (agehama.top = self.check(cell - self.size.value, color, checked)).length === 0) return [];
         if (left === color && (agehama.left = self.check(cell - 1, color, checked)).length === 0) return [];
         if (right === color && (agehama.right = self.check(cell + 1, color, checked)).length === 0) return [];
-        if (bottom === color && (agehama.bottom = self.check(cell + self.size, color, checked)).length === 0) return [];
+        if (bottom === color && (agehama.bottom = self.check(cell + self.size.value, color, checked)).length === 0) return [];
 
         return [cell, ...agehama.top, ...agehama.left, ...agehama.right, ...agehama.bottom].filter(function(cell) { return cell >= 0; });
     };
