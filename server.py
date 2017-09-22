@@ -28,24 +28,24 @@ def room(ws):
                 senddata = {}
                 if 'init' in message:
                     if user == current:
-                        senddata = {'message': '接続しました'}
+                        senddata = {'message': u'接続しました'}
                     else:
                         continue
                 elif 'name' in message and current.name == None and user == current:
-                    senddata = {'message': '別の名前を入力してください'}
+                    senddata = {'message': u'別の名前を入力してください'}
                 elif 'setting' in message and user == current:
                     senddata = {'history': current.history, 'agehama': current.agehama}
                 elif 'request' in message:
                     if user == current:
                         senddata = {'history': user.history, 'agehama': user.agehama}
                     elif message['request'] == user.name:
-                        senddata = {'message': '%sさんから対戦リクエストが来ました' % current.name, 'request': current.name, 'history': user.history, 'agehama': user.agehama}
+                        senddata = {'message': u'%sさんから対戦リクエストが来ました' % current.name, 'request': current.name, 'history': user.history, 'agehama': user.agehama}
                 elif 'view' in message and user == current:
                     parent = search_by_name(message['view'])
                     senddata = {'history': parent.history, 'agehama': parent.agehama}
                 elif 'index' in message:
                     senddata = {'history': current.history, 'agehama': current.agehama}
-                    if user.status == 2: senddata.update({'message': 'あなたの番です'})
+                    if user.status == 2: senddata.update({'message': u'あなたの番です'})
 
                 senddata.update({'you': user.dump(), 'users': [other.dump() for other in users if other.ready(user)]})
                 if user.ws: user.ws.send(json.dumps(senddata))

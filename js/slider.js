@@ -14,7 +14,7 @@
             <i class='material-icons'>navigate_before</i>
         </button>
         <p>
-            <input class='mdl-slider mdl-js-slider' type='range' min='0' max={history.length} value={limit} oninput={historyback}>
+            <input class='mdl-slider mdl-js-slider' type='range' min='0' max={history.length} value={limit} oninput={historyback} ref='slider'>
         </p>
         <button class='mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--primary' disabled={limit == history.length} onclick={next}>
             <i class='material-icons'>navigate_next</i>
@@ -34,7 +34,11 @@
     });
     this.websocket.on('historyback', function(limit) {
         self.limit = limit;
+        if ('slider' in self.refs) self.refs.slider.MaterialSlider.change(limit);
     });
+    this.on('mount', function() {
+        componentHandler.upgradeDom();
+    })
     this.historyback = function(e) {
         self.websocket.trigger('historyback', parseInt(e.target.value));
     };

@@ -24,17 +24,21 @@
         self.agehama = agehama;
     });
     this.websocket.on('historyback', function(limit) {
-        var i = self.history.lastIndexOf(opts.index);
-        self.root.className = '';
-        for (; i >= 0 && i < limit; i++) {
-            if (self.root.className === '') {
-                self.root.className = i % 2 ? 'white' : 'black';
+        var id = setInterval(function() {
+            if (limit > self.history.length) return;
+
+            self.root.className = '';
+            for (var i = self.history.lastIndexOf(opts.index); i >= 0 && i < limit; i++) {
+                if (self.root.className === '') {
+                    self.root.className = i % 2 ? 'white' : 'black';
+                }
+                if (self.agehama[i].indexOf(opts.index) >= 0) {
+                    self.root.className = '';
+                    break;
+                }
             }
-            if (self.agehama[i].indexOf(opts.index) >= 0) {
-                self.root.className = '';
-                break;
-            }
-        }
-        self.update();
+            self.update();
+            clearInterval(id);
+        }, 0);
     });
 </stone>
