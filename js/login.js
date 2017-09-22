@@ -12,7 +12,7 @@
     var self = this;
 
     this.websocket.on('receive:user', function(you) {
-        if (self.you !== undefined && self.you.name && !you.name) opts.websocket.trigger('send', {reconnect: self.you.name});
+        if (self.you !== undefined && self.you.name && !you.name) self.websocket.trigger('send', {reconnect: self.you.name});
         self.you = you;
         self.update();
     });
