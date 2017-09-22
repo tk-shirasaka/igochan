@@ -19,6 +19,8 @@ class User:
         if 'name' in data:
             if search_by_name(data['name']) == None:
                 self.name = data['name']
+        if 'setting' in data:
+            self.setting = data['setting']
         if 'view' in data:
             self.status = 1
             search_by_name(data['view']).group.append(self)
@@ -52,13 +54,18 @@ class User:
 
     def reset(self):
         self.status = 0
+        self.setting = {}
         self.opponent = None
         self.group = []
         self.history = []
         self.agehama = []
 
+    def ready(self, other):
+        return self != other and self.name and self.ws and len(self.setting) and len(other.setting) and self.setting['size'] == other.setting['size']
+
     def dump(self):
         return {
             'name': self.name,
             'status': self.status,
+            'setting': self.setting,
         }

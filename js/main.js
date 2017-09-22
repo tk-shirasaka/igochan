@@ -17,10 +17,14 @@
             ws.onopen = function(evt) {
                 retry = 0;
                 ws.send(JSON.stringify({init: true}));
+                observable.trigger('connection', true);
             };
             ws.onclose = function(evt) {
                 ws = null;
-                if (!retry) observable.trigger('receive:message', '接続が切れました');
+                if (!retry) {
+                    observable.trigger('connection', false);
+                    observable.trigger('receive:message', '接続が切れました');
+                }
                 setTimeout(function() {
                     retry++;
                     connect();
