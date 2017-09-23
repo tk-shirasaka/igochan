@@ -50,9 +50,11 @@
         if (self.reconnect === 0 && self.setting.size === undefined) {
             self.view();
         } else if (self.reconnect === 1) {
+            console.log(self);
             self.reconnect = 2;
             self.websocket.trigger('send', {reconnect: self.name});
         } else if (self.reconnect = 2 && self.connection === true) {
+            console.log(self);
             self.reconnect = 0;
             if (self.setting.size === undefined) self.view();
         }
