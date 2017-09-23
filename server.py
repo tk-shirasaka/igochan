@@ -33,7 +33,7 @@ def room(ws):
                         continue
                 elif 'reconnect' in message:
                     if user.name == message['reconnect']:
-                        senddata = {'history': user.history, 'agehama': user.agehama}
+                        senddata = {'repair': True, 'history': user.history, 'agehama': user.agehama}
                     else:
                         continue
                 elif 'name' in message and current.name == None and user == current:

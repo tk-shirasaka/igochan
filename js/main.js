@@ -41,6 +41,7 @@
             if ('you' in data) observable.trigger('receive:user', data.you, data.users);
             if ('history' in data) observable.trigger('receive:game', data.history, data.agehama);
             if ('message' in data) observable.trigger('receive:message', data.message);
+            if ('repair' in data) observable.trigger('receive:repair');
             console.log(data);
         };
 
