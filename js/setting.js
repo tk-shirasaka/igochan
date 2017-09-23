@@ -35,29 +35,18 @@
 
     var self = this;
     this.visible = false;
-    this.reconnect = 0;
     this.sizelist = [9, 13, 19];
 
     this.websocket.on('connection', function(condition) {
-        if (condition === false && self.connection === true) self.reconnect = 1;
         self.connection = condition;
         self.update();
     });
     this.websocket.on('receive:user', function(you) {
+        if (self.name !== undefined && self.name && !you.name) self.websocket.trigger('send', {reconnect: self.name});
         self.name = you.name;
         self.status = you.status;
         self.setting = you.setting;
-        if (self.reconnect === 0 && self.setting.size === undefined) {
-            self.view();
-        } else if (self.reconnect === 1) {
-            console.log(self.reconnect);
-            self.reconnect = 2;
-            self.websocket.trigger('send', {reconnect: self.name});
-        } else if (self.reconnect === 2) {
-            console.log(self.reconnect);
-            self.reconnect = 0;
-            if (self.setting.size === undefined) self.view();
-        }
+        if (self.setting.size === undefined) self.view();
     });
     this.on('*', function() {
         componentHandler.upgradeDom();
