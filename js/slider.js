@@ -1,7 +1,20 @@
 <slider>
     <style>
-        :scope > div {
+        :scope {
+            z-index: 1;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+        .slider {
+            padding: 15px;
             text-align: center;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        .toggle {
+            padding: 15px;
+            text-align: right;
         }
         p {
             display: inline-block;
@@ -9,7 +22,13 @@
         }
     </style>
 
-    <div if={[2, 3].indexOf(status) == -1}>
+    <div if={viewtoggle()} class='toggle'>
+        <button class='mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--colored' onclick={toggle}>
+            <i class='material-icons'>{hidden ? 'expand_more' : 'expand_less'}</i>
+        </button>
+    </div>
+
+    <div show={viewslider()} class='slider'>
         <button class='mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--primary' disabled={limit == 0} onclick={prev}>
             <i class='material-icons'>navigate_before</i>
         </button>
@@ -24,8 +43,12 @@
     var self = this;
     this.limit = 0;
 
+    window.addEventListener('resize', function() {
+        self.update();
+    });
     this.websocket.on('receive:user', function(you) {
         self.status = you.status;
+        self.size = you.setting.size;
         if (self.status >= 2) self.websocket.trigger('historyback', history.length);
     });
     this.websocket.on('receive:game', function(history) {
@@ -35,10 +58,21 @@
     this.websocket.on('historyback', function(limit) {
         self.limit = limit;
         if ('slider' in self.refs) self.refs.slider.MaterialSlider.change(limit);
+        self.update();
     });
     this.on('mount', function() {
         componentHandler.upgradeDom();
-    })
+    });
+    this.viewtoggle = function() {
+        return self.status < 2 && self.size !== undefined && window.innerHeight < window.innerWidth * 1.4;
+    };
+    this.viewslider = function() {
+        return (self.status < 2 && self.size !== undefined && window.innerHeight > window.innerWidth * 1.4) || 
+        (self.viewtoggle() && self.hidden);
+    };
+    this.toggle = function() {
+        self.hidden = !!!self.hidden;
+    };
     this.historyback = function(e) {
         self.websocket.trigger('historyback', parseInt(e.target.value));
     };

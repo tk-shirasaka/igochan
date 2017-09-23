@@ -1,7 +1,7 @@
 <board>
     <style>
         :scope {
-            padding: 10vmin;
+            padding-top: 10vmin;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -59,7 +59,6 @@
                 <stone index={i * size + j} onclick={parent.parent.onclick}></stone>
             </div>
         </div>
-        <slider></slider>
     </div>
 
     var self = this;

@@ -14,11 +14,16 @@
     <button class='mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect' onclick={view}>
         <i class='material-icons'>settings_applications</i>
     </button>
+    <span class='mdl-typography--title'>{name}</span>
     <div if={visible} class='dialog mdl-card mdl-shadow--2dp'>
         <div class='mdl-card__title'>
             <h2 class='mdl-card__title-text'>設定</h2>
         </div>
         <div class='mdl-card__supporting-text'>
+            <div class='mdl-textfield mdl-js-textfield mdl-textfield--floating-label'>
+                <label class='mdl-textfield__label' for='name'>お名前</label>
+                <input id='name' class='mdl-textfield__input' type='text' value={name} onchange={onchange} disabled={name}>
+            </div>
             <div each={size in sizelist}>
                 <label class='mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect' onclick={select}>
                     <input class='mdl-checkbox__input' type='checkbox' value={size} checked={size == setting.size}>
@@ -37,6 +42,8 @@
         self.update();
     });
     this.websocket.on('receive:user', function(you) {
+        if (self.name !== undefined && self.name && !you.name) self.websocket.trigger('send', {reconnect: self.name});
+        self.name = you.name;
         self.status = you.status;
         self.setting = you.setting;
         if (self.setting.size === undefined) self.view();
@@ -49,6 +56,9 @@
             self.visible = true;
             self.update();
         }
+    };
+    this.onchange = function(e) {
+        self.websocket.trigger('send', {name: e.target.value});
     };
     this.select = function(e) {
         self.visible = false;
