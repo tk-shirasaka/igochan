@@ -31,6 +31,11 @@ def room(ws):
                         senddata = {'message': u'接続しました'}
                     else:
                         continue
+                elif 'reconnect' in message:
+                    if user.name == message['reconnect']:
+                        senddata = {'history': user.history, 'agehama': user.agehama}
+                    else:
+                        continue
                 elif 'name' in message and current.name == None and user == current:
                     senddata = {'message': u'別の名前を入力してください'}
                 elif 'setting' in message and user == current:
