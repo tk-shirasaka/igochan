@@ -49,11 +49,10 @@
     this.websocket.on('receive:user', function(you) {
         self.status = you.status;
         self.size = you.setting.size;
-        if (self.status >= 2) self.websocket.trigger('historyback', history.length);
     });
     this.websocket.on('receive:game', function(history) {
         self.history = history;
-        if (self.limit >= history.length - 1) self.websocket.trigger('historyback', history.length);
+        if (self.limit >= history.length - 1 || self.status >= 2) self.websocket.trigger('historyback', history.length);
     });
     this.websocket.on('historyback', function(limit) {
         self.limit = limit;
