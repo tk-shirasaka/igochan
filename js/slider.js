@@ -28,14 +28,14 @@
         </button>
     </div>
 
-    <div show={viewslider()} class='slider'>
+    <div if={viewslider()} class='slider'>
         <button class='mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--primary' disabled={limit == 0} onclick={prev}>
             <i class='material-icons'>navigate_before</i>
         </button>
         <p>
-            <input class='mdl-slider mdl-js-slider' type='range' min='0' max={history.length} value={limit} oninput={historyback} ref='slider'>
+            <input class='mdl-slider mdl-js-slider' type='range' min='0' max={websocket.history.length} value={limit} oninput={historyback} ref='slider'>
         </p>
-        <button class='mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--primary' disabled={limit == history.length} onclick={next}>
+        <button class='mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect mdl-button--primary' disabled={limit == websocket.history.length} onclick={next}>
             <i class='material-icons'>navigate_next</i>
         </button>
     </div>
@@ -46,28 +46,25 @@
     window.addEventListener('resize', function() {
         self.update();
     });
-    this.websocket.on('receive:user', function(you) {
-        self.status = you.status;
-        self.size = you.setting.size;
+    this.websocket.on('receive:user', function() {
+        self.update();
     });
-    this.websocket.on('receive:game', function(history) {
-        self.history = history;
-        if (self.limit >= history.length - 1 || self.status >= 2) self.websocket.trigger('historyback', history.length);
+    this.websocket.on('receive:game', function() {
+        if (self.websocket.you.status >= 1 && self.limit === self.websocket.history.length - 1) self.websocket.trigger('historyback', self.websocket.history.length);
     });
     this.websocket.on('historyback', function(limit) {
         self.limit = limit;
         if ('slider' in self.refs) self.refs.slider.MaterialSlider.change(limit);
         self.update();
     });
-    this.on('mount', function() {
+    this.on('*', function() {
         componentHandler.upgradeDom();
     });
     this.viewtoggle = function() {
-        return self.status < 2 && self.size !== undefined && window.innerHeight < window.innerWidth * 1.4;
+        return self.websocket.you.size && window.innerHeight < window.innerWidth * 1.4;
     };
     this.viewslider = function() {
-        return (self.status < 2 && self.size !== undefined && window.innerHeight > window.innerWidth * 1.4) || 
-        (self.viewtoggle() && self.hidden);
+        return (self.websocket.you.size && window.innerHeight > window.innerWidth * 1.4) || (self.viewtoggle() && self.hidden);
     };
     this.toggle = function() {
         self.hidden = !!!self.hidden;

@@ -6,9 +6,9 @@
 
     var self = this;
 
-    this.websocket.on('receive:message', function(message) {
+    this.websocket.on('receive:message', function() {
         self.refs.message.MaterialSnackbar.showSnackbar({
-            message: message,
+            message: self.websocket.message,
         });
         self.update();
     });

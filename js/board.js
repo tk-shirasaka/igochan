@@ -53,10 +53,10 @@
         }
     </style>
 
-    <div if={size != undefined}>
-        <div class='line' each={i in [...Array(size).keys()]}>
-            <div each={j in [...Array(size).keys()]} class={cell: true, invisible: (i == (size - 1) || j == (size - 1)), star: (stars[size].indexOf(i) >= 0 && stars[size].indexOf(j) >= 0)}>
-                <stone index={i * size + j} onclick={parent.parent.onclick}></stone>
+    <div if={websocket.you.size}>
+        <div class='line' each={i in [...Array(websocket.you.size).keys()]}>
+            <div each={j in [...Array(websocket.you.size).keys()]} class={cell: true, invisible: (i == (websocket.you.size - 1) || j == (websocket.you.size - 1)), star: (stars[websocket.you.size].indexOf(i) >= 0 && stars[websocket.you.size].indexOf(j) >= 0)}>
+                <stone index={i * websocket.you.size + j} onclick={parent.parent.onclick}></stone>
             </div>
         </div>
     </div>
@@ -64,55 +64,43 @@
     var self = this;
     this.stars = {9: [4], 13:[3, 9], 19:[3, 9, 15]};
 
-    this.websocket.on('receive:user', function(you) {
-        self.status = you.status;
-        self.size = you.setting.size;
-        self.update();
-    });
-    this.websocket.on('receive:game', function(history, agehama) {
-        self.history = history;
-        self.agehama = agehama;
+    this.websocket.on('receive:user', function() {
         self.update();
     });
     this.websocket.on('historyback', function(limit) {
         self.limit = limit;
     });
     this.onclick = function(e) {
-        if ((self.status == 0 || self.status == 2) && ['black', 'white'].indexOf(e.target.className) < 0) {
+        if ([0, 2].indexOf(self.websocket.you.status) >= 0 && ['black', 'white'].indexOf(e.target.className) < 0) {
             var cell = Number(e.target._tag.opts.index);
             var checked = [];
             var agehama = [];
-            var color = self.history.length % 2 ? 'white' : 'black';
-            var opponent = self.history.length % 2 ? 'black' : 'white';
+            var color = self.websocket.history.length % 2 ? 'white' : 'black';
+            var opponent = self.websocket.history.length % 2 ? 'black' : 'white';
 
             self.tags.stone[cell].root.className = color;
-            agehama = agehama.concat(self.check(cell - self.size, opponent, checked));
+            agehama = agehama.concat(self.check(cell - self.websocket.you.size, opponent, checked));
             agehama = agehama.concat(self.check(cell - 1, opponent, checked));
             agehama = agehama.concat(self.check(cell + 1, opponent, checked));
-            agehama = agehama.concat(self.check(cell + self.size, opponent, checked));
-            if (agehama.length === 0 && self.check(cell, color, []).length > 0) {
-                self.tags.stone[cell].root.className = '';
-            } else if (self.status == 0) {
-                if (self.history.length !== self.limit) {
-                    self.history.splice(self.limit);
-                    self.agehama.splice(self.limit);
-                }
-                self.agehama.push(agehama);
-                self.history.push(cell);
-                self.websocket.trigger('receive:game', self.history, self.agehama);
-            } else if (self.status == 2) {
-                self.websocket.trigger('send', {index: cell, agehama: agehama});
+            agehama = agehama.concat(self.check(cell + self.websocket.you.size, opponent, checked));
+            if (self.limit !== undefined && self.websocket.history.length !== self.limit) {
+                self.websocket.history.splice(self.limit);
+                self.websocket.agehama.splice(self.limit);
             }
+            self.websocket.agehama.push(agehama);
+            self.websocket.history.push(cell);
+            self.websocket.trigger('historyback', self.websocket.history.length);
+            if (self.websocket.you.status == 2) self.websocket.trigger('send', {index: cell, agehama: agehama});
         }
     };
     this.check = function(cell, color, checked) {
-        if (cell < 0 || cell >= self.size * self.size) return [];
+        if (cell < 0 || cell >= self.websocket.you.size * self.websocket.you.size) return [];
 
         var opponent = color === 'black' ? 'white' : 'black';
-        var top = cell >= self.size ? self.tags.stone[cell - self.size].root.className : opponent;
-        var left = cell % self.size > 0 ? self.tags.stone[cell - 1].root.className : opponent;
-        var right = cell % self.size < self.size - 1 ? self.tags.stone[cell + 1].root.className : opponent;
-        var bottom = cell < self.size * (self.size - 1) ? self.tags.stone[cell + self.size].root.className : opponent;
+        var top = cell >= self.websocket.you.size ? self.tags.stone[cell - self.websocket.you.size].root.className : opponent;
+        var left = cell % self.websocket.you.size > 0 ? self.tags.stone[cell - 1].root.className : opponent;
+        var right = cell % self.websocket.you.size < self.websocket.you.size - 1 ? self.tags.stone[cell + 1].root.className : opponent;
+        var bottom = cell < self.websocket.you.size * (self.websocket.you.size - 1) ? self.tags.stone[cell + self.websocket.you.size].root.className : opponent;
         var agehama = {top: [], left: [], right: [], bottom: []};
 
         if (checked.indexOf(cell) < 0) {
@@ -125,10 +113,10 @@
         if (['black', 'white'].indexOf(left) < 0) return [];
         if (['black', 'white'].indexOf(right) < 0) return [];
         if (['black', 'white'].indexOf(bottom) < 0) return [];
-        if (top === color && (agehama.top = self.check(cell - self.size, color, checked)).length === 0) return [];
+        if (top === color && (agehama.top = self.check(cell - self.websocket.you.size, color, checked)).length === 0) return [];
         if (left === color && (agehama.left = self.check(cell - 1, color, checked)).length === 0) return [];
         if (right === color && (agehama.right = self.check(cell + 1, color, checked)).length === 0) return [];
-        if (bottom === color && (agehama.bottom = self.check(cell + self.size, color, checked)).length === 0) return [];
+        if (bottom === color && (agehama.bottom = self.check(cell + self.websocket.you.size, color, checked)).length === 0) return [];
 
         return [cell, ...agehama.top, ...agehama.left, ...agehama.right, ...agehama.bottom].filter(function(cell) { return cell >= 0; });
     };

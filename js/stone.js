@@ -19,26 +19,17 @@
 
     var self = this;
 
-    this.websocket.on('receive:game', function(history, agehama) {
-        self.history = history;
-        self.agehama = agehama;
-    });
     this.websocket.on('historyback', function(limit) {
-        var id = setInterval(function() {
-            if (limit > self.history.length) return;
-
-            self.root.className = '';
-            for (var i = self.history.lastIndexOf(opts.index); i >= 0 && i < limit; i++) {
-                if (self.root.className === '') {
-                    self.root.className = i % 2 ? 'white' : 'black';
-                }
-                if (self.agehama[i].indexOf(opts.index) >= 0) {
-                    self.root.className = '';
-                    break;
-                }
+        self.root.className = '';
+        for (var i = self.websocket.history.slice(0, limit).lastIndexOf(opts.index); i >= 0 && i < limit; i++) {
+            if (self.root.className === '') {
+                self.root.className = i % 2 ? 'white' : 'black';
             }
-            self.update();
-            clearInterval(id);
-        }, 0);
+            if (self.websocket.agehama[i].indexOf(opts.index) >= 0) {
+                self.root.className = '';
+                break;
+            }
+        }
+        self.update();
     });
 </stone>

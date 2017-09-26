@@ -38,8 +38,6 @@ def room(ws):
                         continue
                 elif 'name' in message and current.name == None and user == current:
                     senddata = {'message': u'別の名前を入力してください'}
-                elif 'setting' in message and user == current:
-                    senddata = {'history': current.history, 'agehama': current.agehama}
                 elif 'request' in message:
                     if user == current:
                         senddata = {'history': user.history, 'agehama': user.agehama}
