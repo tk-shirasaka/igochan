@@ -1,7 +1,7 @@
 (function () {
     var WebSocket = 'WebSocket' in window ? window.WebSocket : window.MozWebSocket;
     var observable = new function() {
-        this.you = {};
+        this.setting = {};
         this.users = [];
         this.history = [];
         this.agehama = [];
@@ -9,10 +9,13 @@
         this.on('send', function(data) {
             ws.send(JSON.stringify(data));
         });
-        this.on('set:user', function(you, users) {
-            observable.you = you;
+        this.on('set:setting', function(setting) {
+            observable.setting = setting;
+            observable.trigger('receive:setting');
+        });
+        this.on('set:users', function(users) {
             observable.users = users;
-            observable.trigger('receive:user');
+            observable.trigger('receive:users');
         });
         this.on('set:game', function(history, agehama) {
             observable.history = history;
@@ -59,7 +62,8 @@
         var onmessage = function(evt) {
             var data = JSON.parse(evt.data);
 
-            if ('you' in data) observable.trigger('set:user', data.you, data.users);
+            if ('setting' in data) observable.trigger('set:setting', data.setting);
+            if ('users' in data) observable.trigger('set:users', data.users);
             if ('history' in data) observable.trigger('set:game', data.history, data.agehama);
             if ('message' in data) observable.trigger('set:message', data.message);
             if ('repair' in data) observable.trigger('set:repair');

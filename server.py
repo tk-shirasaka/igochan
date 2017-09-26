@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import json
-from user import User, users, search_by_websocket, search_by_name
+from user import User, search_by_websocket
 from bottle.ext.websocket import GeventWebSocketServer, websocket
 from bottle import route, static_file, run
 
@@ -13,7 +13,7 @@ def index():
 
 @route('/room', apply=[websocket])
 def room(ws):
-    users.add(User(ws))
+    User(ws)
 
     while True:
         message = ws.receive()
@@ -23,40 +23,22 @@ def room(ws):
             break;
         else:
             message = json.loads(message)
-            current.set(message)
-            for user in current.group if 'index' in message else users:
-                senddata = {}
-                if 'init' in message:
-                    if user == current:
-                        senddata = {'message': u'接続しました'}
-                    else:
-                        continue
-                elif 'reconnect' in message:
-                    if user.name == message['reconnect']:
-                        senddata = {'repair': True, 'history': user.history, 'agehama': user.agehama}
-                    else:
-                        continue
-                elif 'name' in message and current.name == None and user == current:
-                    senddata = {'message': u'別の名前を入力してください'}
-                elif 'request' in message:
-                    if user == current:
-                        senddata = {'history': user.history, 'agehama': user.agehama}
-                    elif message['request'] == user.name:
-                        senddata = {'message': u'%sさんから対戦リクエストが来ました' % current.name, 'request': current.name, 'history': user.history, 'agehama': user.agehama}
-                elif 'view' in message and user == current:
-                    parent = search_by_name(message['view'])
-                    senddata = {'history': parent.history, 'agehama': parent.agehama}
-                elif 'index' in message:
-                    senddata = {'history': current.history, 'agehama': current.agehama}
-                    if user.status == 2: senddata.update({'message': u'あなたの番です'})
+            if 'name' in message:
+                current.name(message['name'])
+            elif 'size' in message:
+                current.size(message['size'])
+            elif 'view' in message:
+                current.view(message['view'])
+            elif 'request' in message:
+                current.request(message['request'])
+            elif 'index' in message and 'agehama' in message:
+                current.history(message['index'], message['agehama'])
+            elif 'reconnect' in message:
+                current.reconnect(message['reconnect'])
+            elif 'close' in message:
+                current.close()
 
-                senddata.update({'you': user.dump(), 'users': [other.dump() for other in users if other.ready(user)]})
-                if user.ws: user.ws.send(json.dumps(senddata))
-
-    if current.name == None:
-        users.remove(current)
-    else:
-        current.ws = None
+    current.ws = None
 
 @route('/js/<filepath:path>')
 def js(filepath):

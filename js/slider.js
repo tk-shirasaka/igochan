@@ -46,11 +46,11 @@
     window.addEventListener('resize', function() {
         self.update();
     });
-    this.websocket.on('receive:user', function() {
+    this.websocket.on('receive:setting', function() {
         self.update();
     });
     this.websocket.on('receive:game', function() {
-        if (self.websocket.you.status >= 1 && self.limit === self.websocket.history.length - 1) self.websocket.trigger('historyback', self.websocket.history.length);
+        if (self.websocket.setting.status >= 1 && self.limit === self.websocket.history.length - 1) self.websocket.trigger('historyback', self.websocket.history.length);
     });
     this.websocket.on('historyback', function(limit) {
         self.limit = limit;
@@ -61,10 +61,10 @@
         componentHandler.upgradeDom();
     });
     this.viewtoggle = function() {
-        return self.websocket.you.size && window.innerHeight < window.innerWidth * 1.4;
+        return self.websocket.setting.size && window.innerHeight < window.innerWidth * 1.4;
     };
     this.viewslider = function() {
-        return (self.websocket.you.size && window.innerHeight > window.innerWidth * 1.4) || (self.viewtoggle() && self.hidden);
+        return (self.websocket.setting.size && window.innerHeight > window.innerWidth * 1.4) || (self.viewtoggle() && self.hidden);
     };
     this.toggle = function() {
         self.hidden = !!!self.hidden;
