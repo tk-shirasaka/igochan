@@ -46,8 +46,10 @@
         if (!self.websocket.setting.size) self.view();
     });
     this.websocket.on('receive:repair', function() {
-        self.visible = false;
-        self.update();
+        if (self.websocket.setting.size !== undefined) {
+            self.visible = false;
+            self.update();
+        }
     });
     this.on('*', function() {
         componentHandler.upgradeDom();

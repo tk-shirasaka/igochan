@@ -26,13 +26,11 @@
             observable.message = message;
             observable.trigger('receive:message');
         });
-        this.on('set:repair', function() {
-            observable.trigger('receive:repair');
-        });
     };
 
     if (WebSocket !== undefined) {
         var ws = null;
+        var id = (new Date).getTime() + Math.random().toString(16);
         var retry = 0;
         var connect = function() {
             if (ws) return;
@@ -45,7 +43,7 @@
         };
         var onopen = function(evt) {
             retry = 0;
-            ws.send(JSON.stringify({init: true}));
+            ws.send(JSON.stringify({open: id}));
             observable.trigger('connection', true);
         };
         var reconnect = function(evt) {
@@ -66,7 +64,7 @@
             if ('users' in data) observable.trigger('set:users', data.users);
             if ('history' in data) observable.trigger('set:game', data.history, data.agehama);
             if ('message' in data) observable.trigger('set:message', data.message);
-            if ('repair' in data) observable.trigger('set:repair');
+            if ('repair' in data) observable.trigger('receive:repair');
             console.log(data);
         };
 

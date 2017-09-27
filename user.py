@@ -5,10 +5,11 @@ import random
 users = set()
 
 def search_by_websocket(ws):
-    return [user for user in users if user._ws == ws].pop()
+    user = [user for user in users if user._ws == ws]
+    return None if len(user) == 0 else user.pop()
 
-def search_by_name(name):
-    user = [user for user in users if user._name == name and name != '']
+def search_by_id(id):
+    user = [user for user in users if user._id == id]
     return None if len(user) == 0 else user.pop()
 
 class User:
@@ -16,6 +17,7 @@ class User:
         users.add(self)
         self._ws = ws
         self._status = 0
+        self._id = None
         self._name = None
         self._size = None
         self._opponent = None
@@ -24,12 +26,20 @@ class User:
         self._group = set()
         self.send({'setting': self.dump(), 'message': u'接続しました'})
 
-    def name(self, name):
-        if search_by_name(name) == None:
-            self._name = name
-            self.send({'setting': self.dump()})
+    def open(self, id):
+        user = search_by_id(id)
+        if user:
+            self.close(self)
+            user._ws = self._ws
+            user.send({'setting': user.dump(), 'history': user._history, 'agehama': user._agehama, 'repair': True})
+            user.sendusers()
         else:
-            self.send({'message': u'別の名前を入力してください'})
+            self._id = id
+            self.send({'setting': self.dump()})
+
+    def name(self, name):
+        self._name = name
+        self.send({'setting': self.dump()})
 
     def size(self, size):
         self._size = size
@@ -37,8 +47,8 @@ class User:
         self.send({'setting': self.dump()})
         self.sendusers()
 
-    def view(self, user):
-        user = search_by_name(user)
+    def view(self, id):
+        user = search_by_id(id)
         self._status = 1
         self._history = user._history
         self._agehama = user._agehama
@@ -47,8 +57,8 @@ class User:
         self.send({'setting': self.dump(), 'history': self._history, 'agehama': self._agehama})
         self.sendusers()
 
-    def request(self, user):
-        opponent = search_by_name(user)
+    def request(self, id):
+        opponent = search_by_id(id)
         self._opponent = opponent
         self._status = random.randint(2, 3)
         self._group = opponent._group = set()
@@ -71,15 +81,10 @@ class User:
         for user in self._group:
             user.send({'setting': user.dump(), 'history': user._history, 'agehama': user._agehama})
 
-    def recoonect(self, user):
-        user = search_by_name(user)
-        if user:
-            user._ws = self._ws
-            user.send({'repair': True, 'history': user._history, 'agehama': user._agehama})
-            self.close(self)
-
     def close(self):
+        users.add(self)
         users.remove(self)
+        self._group.add(self)
         self._group.remove(self)
         self.sendusers()
 
@@ -98,6 +103,7 @@ class User:
 
     def dump(self):
         return {
+            'id': self._id,
             'name': self._name,
             'status': self._status,
             'size': self._size,

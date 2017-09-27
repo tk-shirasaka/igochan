@@ -15,10 +15,10 @@
     var self = this;
 
     this.start = function(e) {
-        self.websocket.trigger('send', {request: e.item.name});
+        self.websocket.trigger('send', {request: e.item.id});
     };
     this.view = function(e) {
-        self.websocket.trigger('send', {view: e.item.name});
+        self.websocket.trigger('send', {view: e.item.id});
     };
     this.statusname = function(status) {
         if (status == 0) return '待機中';

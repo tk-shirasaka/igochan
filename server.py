@@ -23,7 +23,9 @@ def room(ws):
             break;
         else:
             message = json.loads(message)
-            if 'name' in message:
+            if 'open' in message:
+                current.open(message['open'])
+            elif 'name' in message:
                 current.name(message['name'])
             elif 'size' in message:
                 current.size(message['size'])
@@ -38,7 +40,8 @@ def room(ws):
             elif 'close' in message:
                 current.close()
 
-    current.ws = None
+    if current:
+        current.ws = None
 
 @route('/js/<filepath:path>')
 def js(filepath):
