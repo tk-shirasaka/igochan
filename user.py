@@ -24,14 +24,13 @@ class User:
         self._history = None
         self._agehama = None
         self._group = set()
-        self.send({'setting': self.dump()})
 
     def open(self, id):
         user = search_by_id(id)
         if user:
             self.close()
             user._ws = self._ws
-            user.send({'setting': user.dump(), 'repair': True})
+            user.send({'setting': user.dump()})
             user.sendusers()
             if user._status > 0:
                 user.send({'history': user._history, 'agehama': user._agehama})

@@ -63,7 +63,6 @@
             if ('users' in data) observable.trigger('set:users', data.users);
             if ('history' in data) observable.trigger('set:game', data.history, data.agehama);
             if ('message' in data) observable.trigger('set:message', data.message);
-            if ('repair' in data) observable.trigger('receive:repair');
             console.log(data);
         };
 

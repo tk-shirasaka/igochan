@@ -50,7 +50,7 @@
         self.update();
     });
     this.websocket.on('receive:game', function() {
-        if (self.websocket.setting.status >= 1 && self.limit >= self.websocket.history.length - 1) self.websocket.trigger('historyback', self.websocket.history.length);
+        if (self.websocket.setting.status >= 1 && self.limit === self.websocket.history.length - 1) self.websocket.trigger('historyback', self.websocket.history.length);
     });
     this.websocket.on('historyback', function(limit) {
         self.limit = limit;
