@@ -50,7 +50,6 @@
             ws = null;
             if (!retry) {
                 observable.trigger('connection', false);
-                observable.trigger('set:message', '接続が切れました');
             }
             setTimeout(function() {
                 retry++;

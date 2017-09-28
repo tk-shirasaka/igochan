@@ -24,7 +24,7 @@ class User:
         self._history = None
         self._agehama = None
         self._group = set()
-        self.send({'setting': self.dump(), 'message': u'接続しました'})
+        self.send({'setting': self.dump()})
 
     def open(self, id):
         user = search_by_id(id)
