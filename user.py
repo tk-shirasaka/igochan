@@ -29,7 +29,7 @@ class User:
     def open(self, id):
         user = search_by_id(id)
         if user:
-            self.close(self)
+            self.close()
             user._ws = self._ws
             user.send({'setting': user.dump(), 'history': user._history, 'agehama': user._agehama, 'repair': True})
             user.sendusers()
