@@ -83,14 +83,18 @@
             agehama = agehama.concat(self.check(cell - 1, opponent, checked));
             agehama = agehama.concat(self.check(cell + 1, opponent, checked));
             agehama = agehama.concat(self.check(cell + self.websocket.setting.size, opponent, checked));
-            if (self.limit !== undefined && self.websocket.history.length !== self.limit) {
-                self.websocket.history.splice(self.limit);
-                self.websocket.agehama.splice(self.limit);
+            if (agehama.length === 0 && self.check(cell, color, []).length > 0) {
+                self.tags.stone[cell].root.className = '';
+            } else {
+                if (self.limit !== undefined && self.websocket.history.length !== self.limit) {
+                    self.websocket.history.splice(self.limit);
+                    self.websocket.agehama.splice(self.limit);
+                }
+                self.websocket.agehama.push(agehama);
+                self.websocket.history.push(cell);
+                self.websocket.trigger('historyback', self.websocket.history.length);
+                if (self.websocket.setting.status == 2) self.websocket.trigger('send', {index: cell, agehama: agehama});
             }
-            self.websocket.agehama.push(agehama);
-            self.websocket.history.push(cell);
-            self.websocket.trigger('historyback', self.websocket.history.length);
-            if (self.websocket.setting.status == 2) self.websocket.trigger('send', {index: cell, agehama: agehama});
         }
     };
     this.check = function(cell, color, checked) {
