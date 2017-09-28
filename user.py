@@ -95,13 +95,16 @@ class User:
 
     def sendusers(self):
         for user in self._group:
-            if user._ws and self._size == user._size:
+            if self._size == user._size:
                 user._group.remove(user)
                 user.send({'users': [other.dump() for other in user._group if other._name]})
                 user._group.add(user)
 
     def send(self, data):
-        self._ws.send(json.dumps(data))
+        try:
+            self._ws.send(json.dumps(data))
+        except:
+            self.close()
 
     def dump(self):
         return {
