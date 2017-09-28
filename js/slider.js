@@ -52,6 +52,9 @@
     this.websocket.on('receive:game', function() {
         if (self.websocket.setting.status >= 1 && self.limit === self.websocket.history.length - 1) self.websocket.trigger('historyback', self.websocket.history.length);
     });
+    this.websocket.on('receive:repair', function() {
+        self.websocket.trigger('historyback', self.limit);
+    });
     this.websocket.on('historyback', function(limit) {
         self.limit = limit;
         if ('slider' in self.refs) self.refs.slider.MaterialSlider.change(limit);
