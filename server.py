@@ -33,6 +33,10 @@ def room(ws):
                 current.view(message['view'])
             elif 'request' in message:
                 current.request(message['request'])
+            elif 'accept' in message:
+                current.accept()
+            elif 'refuse' in message:
+                current.refuse()
             elif 'index' in message and 'agehama' in message:
                 current.history(message['index'], message['agehama'])
             elif 'reconnect' in message:

@@ -16,14 +16,17 @@ class User:
     def __init__(self, ws):
         users.add(self)
         self._ws = ws
-        self._status = 0
         self._id = None
         self._name = None
         self._size = None
+        self.reset(set())
+
+    def reset(self, group):
+        self._status = 0
         self._opponent = None
         self._history = None
         self._agehama = None
-        self._group = set()
+        self._group = group
 
     def open(self, id):
         user = search_by_id(id)
@@ -69,8 +72,21 @@ class User:
         self._group.add(opponent)
         opponent.next(self._status)
         opponent._opponent = self
-        self.send({'setting': self.dump(), 'history': self._history, 'agehama': self._agehama})
-        opponent.send({'message': u'%sさんから対戦リクエストが来ました' % self._name, 'setting': opponent.dump(), 'history': opponent._history, 'agehama': opponent._agehama})
+        self.send({'setting': self.dump()})
+        opponent.send({'message': u'%sさんから対戦リクエストが来ました' % self._name, 'setting': self.dump(), 'request': True})
+        self.sendusers()
+
+    def accept(self):
+        self.send({'setting': self.dump(), 'reset': True})
+        self._opponent.send({'setting': self._opponent.dump(), 'reset': True})
+        self.send({'message': u'あなたの番です'}) if self._status == 2 else self._opponent.send({'message': u'あなたの番です'})
+        self.sendusers()
+
+    def refuse(self):
+        self._opponent.send({'message': u'対戦を拒否されました'})
+        for user in self._group:
+            user.reset(users)
+            user.send({'setting': user.dump()})
         self.sendusers()
 
     def history(self, index, agehama):

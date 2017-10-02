@@ -26,6 +26,10 @@
             observable.message = message;
             observable.trigger('receive:message');
         });
+        this.on('reset', function() {
+            observable.history = [];
+            observable.agehama = [];
+        });
     };
 
     if (WebSocket !== undefined) {
@@ -63,6 +67,8 @@
             if ('users' in data) observable.trigger('set:users', data.users);
             if ('history' in data) observable.trigger('set:game', data.history, data.agehama);
             if ('message' in data) observable.trigger('set:message', data.message);
+            if ('request' in data) observable.trigger('receive:request');
+            if ('reset' in data) observable.trigger('reset');
             console.log(data);
         };
 
