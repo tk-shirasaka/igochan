@@ -3,7 +3,7 @@ import os
 import json
 from user import User, search_by_websocket
 from bottle.ext.websocket import GeventWebSocketServer, websocket
-from bottle import route, static_file, run
+from bottle import route, static_file, response, run
 
 base = os.path.dirname(os.path.abspath(__file__))
 
@@ -46,6 +46,12 @@ def room(ws):
 
     if current:
         current.ws = None
+
+@route('/download/<sgf>')
+def download(sgf):
+    response.contet_type = 'application/octet-stream'
+    response.headers['Content-Disposition'] = 'attachement; filename=igochan.sgf'
+    return sgf
 
 @route('/js/<filepath:path>')
 def js(filepath):
